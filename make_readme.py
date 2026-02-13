@@ -263,17 +263,29 @@ def pick_top_repos(repos: List[dict], n: int = 8) -> List[dict]:
     return candidates[:n]
 
 
-def repo_bullets(rs: List[dict], max_desc: int = 85) -> List[str]:
+def repo_lines_html(rs: List[dict], max_desc: int = 140) -> List[str]:
+    """
+    Single-line entries with no-wrap + ellipsis.
+    On wide screens you'll see more text; on narrow screens it truncates gracefully.
+    """
     out: List[str] = []
     for r in rs:
-        name = r.get("name", "")
-        url = r.get("html_url", "")
-        desc = _clean_desc(r.get("description") or "", max_len=max_desc)
-        if desc:
-            out.append(f"- **[{name}]({url})** — {desc}")
-        else:
-            out.append(f"- **[{name}]({url})**")
+        name = str(r.get("name", "")).strip()
+        url = str(r.get("html_url", "")).strip()
+        desc = _clean_desc(str(r.get("description") or ""), max_len=max_desc)
+
+        # Use an em dash separator only if we have a description.
+        suffix = f" — {desc}" if desc else ""
+
+        out.append(
+            (
+                '<div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">'
+                f'<a href="{url}"><b>{name}</b></a>{suffix}'
+                "</div>"
+            )
+        )
     return out
+
 
 
 def badges_html(username: str) -> List[str]:
@@ -347,15 +359,15 @@ def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[d
     out.append("")
     out.append("---")
 
-    out += section("Current projects", repo_bullets(current_projects, max_desc=90))
+    out += section("Current projects", repo_lines_html(current_projects, max_desc=170))
     out.append("")
     out.append("---")
 
-    out += section("Recently updated", repo_bullets(recent, max_desc=80))
+    out += section("Recently updated", repo_lines_html(recent, max_desc=170))
     out.append("")
     out.append("---")
 
-    out += section("More repos", repo_bullets(top, max_desc=70))
+    out += section("More repos", repo_lines_html(top, max_desc=170))
     out.append("")
     out.append("---")
 
