@@ -1,5 +1,5 @@
 <!-- Auto-generated on 2026-02-13. Edit README.md or regenerate via make_readme.py. -->
-<p align="left"><img src="hero.png" alt="Hero image" width="100%"></p>
+<p align="left"><img src="hero.jpg" alt="Hero image" width="100%"></p>
 # Hi, I'm Alan Rockefeller 👋
 
 Alan is a mycologist, researcher, educator, consultant and keynote speaker specializing in DNA barcoding, field photography, and fungal microscopy.

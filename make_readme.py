@@ -17,7 +17,7 @@ GQL = "https://api.github.com/graphql"
 
 # Path to your hero image *inside this repo* (relative path).
 # Example: "hero.png" or "assets/hero.jpg"
-HERO_IMAGE_PATH = "hero.png"
+HERO_IMAGE_PATH = "hero.jpg"
 
 # Your preferred (featured) repos, in the order you want them shown.
 PREFERRED_REPOS = [
