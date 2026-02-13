@@ -5,13 +5,22 @@ import os
 import sys
 import textwrap
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import requests
 
-
 API = "https://api.github.com"
 GQL = "https://api.github.com/graphql"
+
+# Put your "brand" repos here (case-insensitive). These appear first in Featured.
+PREFERRED_REPOS = [
+    "faststack",
+    "inat.label.py",
+    "stackcopy",
+    "inat.finder.py",
+    "inat.nearbyobservations.py",
+    "motoinat.py",
+]
 
 
 def _headers(token: Optional[str]) -> Dict[str, str]:
@@ -33,7 +42,7 @@ def _get_json(url: str, token: Optional[str], params: Optional[dict] = None) -> 
 
 def _post_gql(query: str, token: Optional[str], variables: dict) -> Any:
     if not token:
-        # GraphQL is much more reliable with auth; keep behavior explicit.
+        # Pinned repos are easiest via GraphQL; without a token we just skip pinned.
         return None
     r = requests.post(
         GQL,
@@ -77,7 +86,6 @@ def fetch_repos(username: str, token: Optional[str]) -> List[dict]:
 
 
 def fetch_pinned_repos(username: str, token: Optional[str]) -> List[dict]:
-    # Pinned repos are only easily accessible via GraphQL.
     query = """
     query($login: String!) {
       user(login: $login) {
@@ -101,7 +109,7 @@ def fetch_pinned_repos(username: str, token: Optional[str]) -> List[dict]:
     if not data:
         return []
     nodes = data["user"]["pinnedItems"]["nodes"] or []
-    # Normalize to plain dicts
+
     pinned: List[dict] = []
     for n in nodes:
         pinned.append(
@@ -112,22 +120,18 @@ def fetch_pinned_repos(username: str, token: Optional[str]) -> List[dict]:
                 "stargazers_count": n.get("stargazerCount") or 0,
                 "forks_count": n.get("forkCount") or 0,
                 "language": (n.get("primaryLanguage") or {}).get("name") or "",
-                "updated_at": n.get("updatedAt") or "",
+                "pushed_at": n.get("updatedAt") or "",
             }
         )
     return pinned
 
 
+def _is_good_repo(r: dict) -> bool:
+    return not r.get("fork") and not r.get("archived")
+
+
 def pick_top_repos(repos: List[dict], n: int = 8) -> List[dict]:
-    # Filter out forks/archived unless they’re clearly popular.
-    candidates = []
-    for r in repos:
-        if r.get("fork"):
-            continue
-        if r.get("archived"):
-            continue
-        candidates.append(r)
-    # Sort by stars, then recency
+    candidates = [r for r in repos if _is_good_repo(r)]
     candidates.sort(
         key=lambda r: (r.get("stargazers_count", 0), r.get("pushed_at", "")),
         reverse=True,
@@ -136,11 +140,10 @@ def pick_top_repos(repos: List[dict], n: int = 8) -> List[dict]:
 
 
 def pick_recent_repos(repos: List[dict], n: int = 6) -> List[dict]:
-    # Most recently pushed-to (already sorted by pushed in fetch, but keep safe)
     repos_sorted = sorted(repos, key=lambda r: r.get("pushed_at", ""), reverse=True)
-    out = []
+    out: List[dict] = []
     for r in repos_sorted:
-        if r.get("fork") or r.get("archived"):
+        if not _is_good_repo(r):
             continue
         out.append(r)
         if len(out) >= n:
@@ -148,36 +151,28 @@ def pick_recent_repos(repos: List[dict], n: int = 6) -> List[dict]:
     return out
 
 
-def shields_badges(username: str, primary_langs: List[str]) -> str:
-    # Keep it tasteful: a couple of “identity” badges + a few language badges.
-    # You can change labels/colors later.
-    parts = [
-        f"[![Followers](https://img.shields.io/github/followers/{username}?label=Followers&style=flat)](https://github.com/{username}?tab=followers)",
-        f"[![Stars](https://img.shields.io/github/stars/{username}?label=Total%20Stars&style=flat)](https://github.com/{username}?tab=repositories)",
-    ]
-    # Add up to 6 language badges
-    for lang in primary_langs[:6]:
-        safe = lang.replace(" ", "%20")
-        parts.append(f"![{lang}](https://img.shields.io/badge/{safe}-informational?style=flat)")
-    return " ".join(parts)
+def curated_then_top(repos: List[dict], n: int = 6) -> List[dict]:
+    by_name = {str(r.get("name", "")).lower(): r for r in repos}
+    picked: List[dict] = []
 
+    for name in PREFERRED_REPOS:
+        r = by_name.get(name.lower())
+        if r and _is_good_repo(r):
+            picked.append(r)
 
-def format_repo_line(r: dict) -> str:
-    name = r.get("name", "")
-    url = r.get("html_url", "")
-    desc = (r.get("description") or "").strip()
-    stars = r.get("stargazers_count", 0)
-    forks = r.get("forks_count", 0)
-    lang = (r.get("language") or "").strip()
-    meta = " • ".join([x for x in [lang, f"★ {stars}", f"⑂ {forks}"] if x])
-    if desc:
-        return f"- **[{name}]({url})** — {desc}  \n  {meta}"
-    return f"- **[{name}]({url})**  \n  {meta}"
+    remaining = [r for r in repos if _is_good_repo(r) and r not in picked]
+    remaining.sort(
+        key=lambda r: (r.get("stargazers_count", 0), r.get("pushed_at", "")),
+        reverse=True,
+    )
+    return (picked + remaining)[:n]
 
 
 def most_common_languages(repos: List[dict]) -> List[str]:
     counts: Dict[str, int] = {}
     for r in repos:
+        if not _is_good_repo(r):
+            continue
         lang = (r.get("language") or "").strip()
         if not lang:
             continue
@@ -185,64 +180,104 @@ def most_common_languages(repos: List[dict]) -> List[str]:
     return [k for k, _ in sorted(counts.items(), key=lambda kv: kv[1], reverse=True)]
 
 
+def shields_badges(username: str, primary_langs: List[str]) -> str:
+    # Put badges on separate lines to prevent horizontal scrolling.
+    lines = [
+        f"[![Followers](https://img.shields.io/github/followers/{username}?label=Followers&style=flat)](https://github.com/{username}?tab=followers)",
+        f"[![Stars](https://img.shields.io/github/stars/{username}?label=Stars&style=flat)](https://github.com/{username}?tab=repositories)",
+    ]
+    # Keep language badges, but separate lines and limited count.
+    for lang in primary_langs[:4]:
+        safe = lang.replace(" ", "%20")
+        lines.append(f"![{lang}](https://img.shields.io/badge/{safe}-informational?style=flat)")
+    return "\n".join(lines)
+
+
+def _clean_desc(desc: str, max_len: int = 90) -> str:
+    d = " ".join(desc.strip().split())
+    if len(d) <= max_len:
+        return d
+    return d[: max_len - 1].rstrip() + "…"
+
+
+def format_repo_line(r: dict, include_meta: bool = False) -> str:
+    # Keep each bullet compact to avoid scroll; meta is optional.
+    name = r.get("name", "")
+    url = r.get("html_url", "")
+    desc = _clean_desc(r.get("description") or "")
+    if desc:
+        line = f"- **[{name}]({url})** — {desc}"
+    else:
+        line = f"- **[{name}]({url})**"
+
+    if include_meta:
+        stars = r.get("stargazers_count", 0)
+        lang = (r.get("language") or "").strip()
+        meta = " • ".join([x for x in [lang, f"★ {stars}"] if x])
+        if meta:
+            line += f"  \n  {meta}"
+    return line
+
+
 def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[dict]) -> str:
     display_name = user.get("name") or username
     bio = (user.get("bio") or "").strip()
     location = (user.get("location") or "").strip()
     blog = (user.get("blog") or "").strip()
-    twitter = (user.get("twitter_username") or "").strip()
-    avatar = user.get("avatar_url", "")
     profile_url = user.get("html_url", f"https://github.com/{username}")
 
     langs = most_common_languages(repos)
     badges = shields_badges(username, langs)
 
+    # Featured logic:
+    # 1) Use curated list (your “brand” repos) first
+    # 2) If you have pinned repos from GraphQL, merge them in (without duplicates)
+    curated = curated_then_top(repos, n=6)
+    featured = []
+    seen = set()
+    for r in curated + (pinned or []):
+        key = str(r.get("name", "")).lower()
+        if key and key not in seen and _is_good_repo(r):
+            featured.append(r)
+            seen.add(key)
+        if len(featured) >= 6:
+            break
+
+    # “More repos” sections
     top = pick_top_repos(repos, n=8)
     recent = pick_recent_repos(repos, n=6)
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    # If pinned is empty (no token / no pinned), fall back to top repos list.
-    featured = pinned if pinned else top[:6]
-
-    contact_bits = []
+    # Contact / links (avoid super long lines)
+    contact_bits: List[str] = []
     if location:
         contact_bits.append(f"- 📍 {location}")
     if blog:
-        # blog may be a bare domain; make it clickable
         blog_url = blog if blog.startswith("http") else f"https://{blog}"
         contact_bits.append(f"- 🌐 {blog_url}")
-    if twitter:
-        contact_bits.append(f"- 🐦 https://twitter.com/{twitter}")
-    contact = "\n".join(contact_bits) if contact_bits else "- (add contact links here)"
+    contact_bits.append(f"- 💻 {profile_url}")
+    contact = "\n".join(contact_bits)
 
     featured_lines = "\n".join(format_repo_line(r) for r in featured)
     top_lines = "\n".join(format_repo_line(r) for r in top)
     recent_lines = "\n".join(format_repo_line(r) for r in recent)
 
-    # Keep it “steipete-ish”: big hello, badges, sections, curated lists.
+    # Keep it concise; avoid a long footer that can trigger scrolling.
     return textwrap.dedent(
         f"""\
-        <!--
-        Auto-generated on {now}.
-        Edit generate_profile_readme.py to change layout, sections, or selection logic.
-        -->
+        <!-- Auto-generated on {now}. Edit this file or regenerate via the script. -->
 
         # Hi, I'm {display_name} 👋
 
-        {bio if bio else ""}
+        {bio}
 
         {badges}
 
         ---
 
-        ## Featured
+        ## Current projects
         {featured_lines}
-
-        ---
-
-        ## Top repos
-        {top_lines}
 
         ---
 
@@ -251,16 +286,13 @@ def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[d
 
         ---
 
-        ## About
-        - 💻 {profile_url}
-        - 🧩 I build practical tools for real workflows (automation, data, imaging, etc.)
-        - 🧪 Interests: mycology, DNA barcoding, field photography, microscopy
-
-        ## Contact
-        {contact}
+        ## More repos
+        {top_lines}
 
         ---
-        <sub>Generated by <code>generate_profile_readme.py</code>. Avatar: {avatar}</sub>
+
+        ## Links
+        {contact}
         """
     ).strip() + "\n"
 
