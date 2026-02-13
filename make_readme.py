@@ -263,10 +263,10 @@ def pick_top_repos(repos: List[dict], n: int = 8) -> List[dict]:
     return candidates[:n]
 
 
-def repo_lines_html(rs: List[dict], max_desc: int = 140) -> List[str]:
+def repo_lines_html(rs: List[dict], max_desc: int = 220) -> List[str]:
     """
-    Single-line entries with no-wrap + ellipsis.
-    On wide screens you'll see more text; on narrow screens it truncates gracefully.
+    Single-line rows that DO NOT WRAP and ellipsize when too long.
+    This is the most reliable styling for GitHub profile READMEs.
     """
     out: List[str] = []
     for r in rs:
@@ -274,18 +274,15 @@ def repo_lines_html(rs: List[dict], max_desc: int = 140) -> List[str]:
         url = str(r.get("html_url", "")).strip()
         desc = _clean_desc(str(r.get("description") or ""), max_len=max_desc)
 
-        # Use an em dash separator only if we have a description.
         suffix = f" — {desc}" if desc else ""
 
+        # NOTE: no newlines in this HTML string (important)
         out.append(
-            (
-                '<div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">'
-                f'<a href="{url}"><b>{name}</b></a>{suffix}'
-                "</div>"
-            )
+            f'<div style="max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">'
+            f'<a href="{url}"><b>{name}</b></a>{suffix}'
+            f"</div>"
         )
     return out
-
 
 
 def badges_html(username: str) -> List[str]:
