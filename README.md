@@ -1,4 +1,4 @@
-<!-- Auto-generated on 2026-02-13. Edit this file or regenerate via the script. -->
+<!-- Auto-generated on 2026-02-13. Edit this file or regenerate via make_readme.py. -->
 
         # Hi, I'm Alan Rockefeller 👋
 
@@ -13,11 +13,11 @@
         ---
 
         ## Current projects
-        - **[faststack](https://github.com/AlanRockefeller/faststack)**
-- **[inat.label.py](https://github.com/AlanRockefeller/inat.label.py)** — iNaturalist Herbarium Label Generator: A command line tool to create formatted herbarium…
-- **[stackcopy](https://github.com/AlanRockefeller/stackcopy)**
+        - **[inat.label.py](https://github.com/AlanRockefeller/inat.label.py)** — iNaturalist Herbarium Label Generator: A command line tool to create formatted herbarium…
 - **[inat.finder.py](https://github.com/AlanRockefeller/inat.finder.py)** — Finds the correct iNaturalist observation number given a mistyped number by checking all…
+- **[faststack](https://github.com/AlanRockefeller/faststack)**
 - **[inat.nearbyobservations.py](https://github.com/AlanRockefeller/inat.nearbyobservations.py)** — A chrome extension and command line tool to find nearby observations of organisms in the…
+- **[stackcopy](https://github.com/AlanRockefeller/stackcopy)**
 - **[motoinat.py](https://github.com/AlanRockefeller/motoinat.py)** — A python script which finds the corresponding iNaturalist observation numbers when given…
 
         ---

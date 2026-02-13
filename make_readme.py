@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import json
 import os
+import subprocess
 import sys
 import textwrap
 from datetime import datetime, timezone
@@ -12,13 +14,14 @@ import requests
 API = "https://api.github.com"
 GQL = "https://api.github.com/graphql"
 
-# Put your "brand" repos here (case-insensitive). These appear first in Featured.
+# Your preferred (featured) repos, in the order you want them shown.
+# If a repo doesn't exist, it will be skipped and replaced by other top repos.
 PREFERRED_REPOS = [
-    "faststack",
     "inat.label.py",
-    "stackcopy",
     "inat.finder.py",
+    "faststack",
     "inat.nearbyobservations.py",
+    "stackcopy",
     "motoinat.py",
 ]
 
@@ -29,7 +32,11 @@ def _headers(token: Optional[str]) -> Dict[str, str]:
         "User-Agent": "profile-readme-generator",
     }
     if token:
-        h["Authorization"] = f"Bearer {token}"
+        t = token.strip()
+        # Refuse tokens containing whitespace/newlines (often CLI error output)
+        if any(c.isspace() for c in t):
+            return h
+        h["Authorization"] = f"Bearer {t}"
     return h
 
 
@@ -40,14 +47,20 @@ def _get_json(url: str, token: Optional[str], params: Optional[dict] = None) -> 
     return r.json()
 
 
-def _post_gql(query: str, token: Optional[str], variables: dict) -> Any:
+def _post_gql(query: str, token: Optional[str], variables: Optional[dict] = None) -> Any:
+    """
+    GraphQL via requests. Requires a usable token; otherwise returns None.
+    """
     if not token:
-        # Pinned repos are easiest via GraphQL; without a token we just skip pinned.
         return None
+    payload: Dict[str, Any] = {"query": query}
+    if variables is not None:
+        payload["variables"] = variables
+
     r = requests.post(
         GQL,
         headers=_headers(token),
-        json={"query": query, "variables": variables},
+        json=payload,
         timeout=30,
     )
     if r.status_code >= 400:
@@ -55,7 +68,31 @@ def _post_gql(query: str, token: Optional[str], variables: dict) -> Any:
     data = r.json()
     if "errors" in data:
         raise RuntimeError(f"GraphQL errors: {data['errors']}")
-    return data["data"]
+    return data.get("data")
+
+
+def _gh_graphql_inline(query: str) -> Optional[dict]:
+    """
+    Run an inline GraphQL query via GitHub CLI (uses `gh auth login` credentials).
+    This avoids variables handling (which can be flaky across gh versions).
+    """
+    try:
+        proc = subprocess.run(
+            ["gh", "api", "graphql", "-f", f"query={query}"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        return None
+
+    if proc.returncode != 0:
+        return None
+
+    try:
+        return json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return None
 
 
 def fetch_user(username: str, token: Optional[str]) -> dict:
@@ -86,7 +123,13 @@ def fetch_repos(username: str, token: Optional[str]) -> List[dict]:
 
 
 def fetch_pinned_repos(username: str, token: Optional[str]) -> List[dict]:
-    query = """
+    """
+    Try GraphQL pinned repos via:
+      1) requests + token (if set)
+      2) gh api graphql (inline query) fallback (uses gh auth login)
+    """
+    # 1) Token-based GraphQL (variables version is fine here)
+    query_vars = """
     query($login: String!) {
       user(login: $login) {
         pinnedItems(first: 6, types: REPOSITORY) {
@@ -105,10 +148,43 @@ def fetch_pinned_repos(username: str, token: Optional[str]) -> List[dict]:
       }
     }
     """
-    data = _post_gql(query, token, {"login": username})
+    data = None
+    try:
+        data = _post_gql(query_vars, token, {"login": username})
+    except Exception:
+        # If token is present but invalid, don't block the gh fallback.
+        data = None
+
+    # 2) gh CLI fallback (inline query; no variables)
+    if not data:
+        query_inline = f"""
+        {{
+          user(login:"{username}") {{
+            pinnedItems(first:6, types:REPOSITORY) {{
+              nodes {{
+                ... on Repository {{
+                  name
+                  url
+                  description
+                  stargazerCount
+                  forkCount
+                  updatedAt
+                  primaryLanguage {{ name }}
+                }}
+              }}
+            }}
+          }}
+        }}
+        """.strip()
+
+        gh_resp = _gh_graphql_inline(query_inline)
+        if gh_resp and isinstance(gh_resp, dict):
+            data = gh_resp.get("data")
+
     if not data:
         return []
-    nodes = data["user"]["pinnedItems"]["nodes"] or []
+
+    nodes = (((data.get("user") or {}).get("pinnedItems") or {}).get("nodes")) or []
 
     pinned: List[dict] = []
     for n in nodes:
@@ -120,7 +196,10 @@ def fetch_pinned_repos(username: str, token: Optional[str]) -> List[dict]:
                 "stargazers_count": n.get("stargazerCount") or 0,
                 "forks_count": n.get("forkCount") or 0,
                 "language": (n.get("primaryLanguage") or {}).get("name") or "",
+                "updated_at": n.get("updatedAt") or "",
                 "pushed_at": n.get("updatedAt") or "",
+                "fork": False,
+                "archived": False,
             }
         )
     return pinned
@@ -186,7 +265,7 @@ def shields_badges(username: str, primary_langs: List[str]) -> str:
         f"[![Followers](https://img.shields.io/github/followers/{username}?label=Followers&style=flat)](https://github.com/{username}?tab=followers)",
         f"[![Stars](https://img.shields.io/github/stars/{username}?label=Stars&style=flat)](https://github.com/{username}?tab=repositories)",
     ]
-    # Keep language badges, but separate lines and limited count.
+    # Keep language badges separate lines and limited count.
     for lang in primary_langs[:4]:
         safe = lang.replace(" ", "%20")
         lines.append(f"![{lang}](https://img.shields.io/badge/{safe}-informational?style=flat)")
@@ -200,23 +279,14 @@ def _clean_desc(desc: str, max_len: int = 90) -> str:
     return d[: max_len - 1].rstrip() + "…"
 
 
-def format_repo_line(r: dict, include_meta: bool = False) -> str:
-    # Keep each bullet compact to avoid scroll; meta is optional.
+def format_repo_line(r: dict) -> str:
+    # Compact bullets to avoid horizontal scrolling.
     name = r.get("name", "")
     url = r.get("html_url", "")
     desc = _clean_desc(r.get("description") or "")
     if desc:
-        line = f"- **[{name}]({url})** — {desc}"
-    else:
-        line = f"- **[{name}]({url})**"
-
-    if include_meta:
-        stars = r.get("stargazers_count", 0)
-        lang = (r.get("language") or "").strip()
-        meta = " • ".join([x for x in [lang, f"★ {stars}"] if x])
-        if meta:
-            line += f"  \n  {meta}"
-    return line
+        return f"- **[{name}]({url})** — {desc}"
+    return f"- **[{name}]({url})**"
 
 
 def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[dict]) -> str:
@@ -230,11 +300,12 @@ def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[d
     badges = shields_badges(username, langs)
 
     # Featured logic:
-    # 1) Use curated list (your “brand” repos) first
-    # 2) If you have pinned repos from GraphQL, merge them in (without duplicates)
+    # - Always start with curated list
+    # - Merge pinned if available (no duplicates)
     curated = curated_then_top(repos, n=6)
-    featured = []
+    featured: List[dict] = []
     seen = set()
+
     for r in curated + (pinned or []):
         key = str(r.get("name", "")).lower()
         if key and key not in seen and _is_good_repo(r):
@@ -243,13 +314,11 @@ def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[d
         if len(featured) >= 6:
             break
 
-    # “More repos” sections
     top = pick_top_repos(repos, n=8)
     recent = pick_recent_repos(repos, n=6)
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    # Contact / links (avoid super long lines)
     contact_bits: List[str] = []
     if location:
         contact_bits.append(f"- 📍 {location}")
@@ -260,13 +329,12 @@ def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[d
     contact = "\n".join(contact_bits)
 
     featured_lines = "\n".join(format_repo_line(r) for r in featured)
-    top_lines = "\n".join(format_repo_line(r) for r in top)
     recent_lines = "\n".join(format_repo_line(r) for r in recent)
+    top_lines = "\n".join(format_repo_line(r) for r in top)
 
-    # Keep it concise; avoid a long footer that can trigger scrolling.
     return textwrap.dedent(
         f"""\
-        <!-- Auto-generated on {now}. Edit this file or regenerate via the script. -->
+        <!-- Auto-generated on {now}. Edit this file or regenerate via make_readme.py. -->
 
         # Hi, I'm {display_name} 👋
 
@@ -301,6 +369,7 @@ def main(argv: List[str]) -> int:
     username = argv[1] if len(argv) >= 2 else "AlanRockefeller"
     out_path = argv[2] if len(argv) >= 3 else "README.md"
 
+    # Optional: token for requests-based GraphQL. Not required if gh auth is set up.
     token = os.environ.get("GITHUB_TOKEN")
 
     user = fetch_user(username, token)
@@ -312,10 +381,11 @@ def main(argv: List[str]) -> int:
         f.write(readme)
 
     print(f"Wrote {out_path} for {username} ({len(repos)} repos, {len(pinned)} pinned)")
-    if not token:
-        print("Note: set GITHUB_TOKEN to avoid rate limits and to fetch pinned repos via GraphQL.")
+    if not pinned:
+        print("Note: pinned repos unavailable. Ensure `gh auth login` works or set GITHUB_TOKEN.")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+
