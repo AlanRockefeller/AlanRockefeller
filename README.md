@@ -14,24 +14,24 @@ Alan is a mycologist, researcher, educator, consultant and keynote speaker speci
 ## What I do
 - 🧬 DNA barcoding workflows (field → lab → sequences → IDs)
 - 📷 Field photography + automation pipelines for large datasets
-- 🔬 Fungal microscopy + documentation tooling
+- 🔬 Fungal microscopy
 
 ---
 
 ## Current projects
 - **[inat.label.py](https://github.com/AlanRockefeller/inat.label.py)** — iNaturalist Herbarium Label Generator: A command line tool to create formatted herbarium…
 - **[inat.finder.py](https://github.com/AlanRockefeller/inat.finder.py)** — Finds the correct iNaturalist observation number given a mistyped number by checking all…
-- **[faststack](https://github.com/AlanRockefeller/faststack)**
+- **[faststack](https://github.com/AlanRockefeller/faststack)** — A photo viewer optimized for speed and image upload. Has light editing features.
 - **[inat.nearbyobservations.py](https://github.com/AlanRockefeller/inat.nearbyobservations.py)** — A chrome extension and command line tool to find nearby observations of organisms in the…
-- **[stackcopy](https://github.com/AlanRockefeller/stackcopy)**
+- **[stackcopy](https://github.com/AlanRockefeller/stackcopy)** — Import tool for Olympus cameras which is aware of in-camera photo stacking.
 - **[motoinat.py](https://github.com/AlanRockefeller/motoinat.py)** — A python script which finds the corresponding iNaturalist observation numbers when given…
 
 ---
 
 ## Recently updated
-- **[faststack](https://github.com/AlanRockefeller/faststack)**
+- **[faststack](https://github.com/AlanRockefeller/faststack)** — A photo viewer optimized for speed and image upload. Has light editing features.
 - **[findphotodates.py](https://github.com/AlanRockefeller/findphotodates.py)** — Makes a list of your photos and videos with the dates they were taken. Uses exi…
-- **[stackcopy](https://github.com/AlanRockefeller/stackcopy)**
+- **[stackcopy](https://github.com/AlanRockefeller/stackcopy)** — Import tool for Olympus cameras which is aware of in-camera photo stacking.
 - **[inat.label.py](https://github.com/AlanRockefeller/inat.label.py)** — iNaturalist Herbarium Label Generator: A command line tool to create formatted…
 - **[printfunction.sh](https://github.com/AlanRockefeller/printfunction.sh)** — A command line tool to print Python functions using AST parsing. Handles decora…
 - **[inat.finder.py](https://github.com/AlanRockefeller/inat.finder.py)** — Finds the correct iNaturalist observation number given a mistyped number by che…
@@ -40,8 +40,8 @@ Alan is a mycologist, researcher, educator, consultant and keynote speaker speci
 
 ## More repos
 - **[inat.label.py](https://github.com/AlanRockefeller/inat.label.py)** — iNaturalist Herbarium Label Generator: A command line tool to create…
-- **[stackcopy](https://github.com/AlanRockefeller/stackcopy)**
-- **[faststack](https://github.com/AlanRockefeller/faststack)**
+- **[stackcopy](https://github.com/AlanRockefeller/stackcopy)** — Import tool for Olympus cameras which is aware of in-camera photo sta…
+- **[faststack](https://github.com/AlanRockefeller/faststack)** — A photo viewer optimized for speed and image upload. Has light editin…
 - **[inat.finder.py](https://github.com/AlanRockefeller/inat.finder.py)** — Finds the correct iNaturalist observation number given a mistyped num…
 - **[fixfasta.py](https://github.com/AlanRockefeller/fixfasta.py)** — Detect and reverse complement backwards ITS sequences in FASTA files
 - **[inat-gb-name.pl](https://github.com/AlanRockefeller/inat-gb-name.pl)** — A perl script which compares the name on a Genbank record to the curr…

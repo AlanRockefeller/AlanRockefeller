@@ -32,7 +32,7 @@ PREFERRED_REPOS = [
 WHAT_I_DO_BULLETS = [
     "🧬 DNA barcoding workflows (field → lab → sequences → IDs)",
     "📷 Field photography + automation pipelines for large datasets",
-    "🔬 Fungal microscopy + documentation tooling",
+    "🔬 Fungal microscopy",
 ]
 
 # ---------------------------------------------------------------------
@@ -86,7 +86,6 @@ def _post_gql(query: str, token: Optional[str], variables: Optional[dict] = None
 def _gh_graphql_inline(query: str) -> Optional[dict]:
     """
     Run an inline GraphQL query via GitHub CLI (uses `gh auth login` credentials).
-    This avoids variables handling differences across gh versions.
     """
     try:
         proc = subprocess.run(
