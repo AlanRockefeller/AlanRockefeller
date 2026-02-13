@@ -6,7 +6,7 @@ import os
 import subprocess
 import sys
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -18,8 +18,12 @@ GQL = "https://api.github.com/graphql"
 # Hero image path inside repo (relative). e.g. "hero.jpg" or "assets/hero.png"
 HERO_IMAGE_PATH = "hero.jpg"
 
+# Recommended hero image size:
+#   Best: 1600x480 (10:3), or 1200x360. Keep file size reasonable (a couple MB).
+# You can crop a wide banner; GitHub will scale it to the container width.
+
 # Target total characters per project line before we start truncating the description.
-# This is the knob that reduces wrapping. Lower = less wrap, more ellipsis.
+# Lower = less wrap, more ellipsis.
 TARGET_LINE_CHARS = 120
 
 # How many items to show in each section
@@ -38,32 +42,31 @@ PREFERRED_REPOS = [
     "motoinat.py",
 ]
 
-# Curated short blurbs (these override GitHub descriptions)
-# Format: repo_name -> (emoji, blurb)
-CURATED_BLURBS: Dict[str, Tuple[str, str]] = {
-    "inat.label.py": ("🏷️", "iNaturalist → herbarium label generator (RTF output)"),
-    "inat.finder.py": ("🔎", "Fix mistyped iNaturalist observation IDs via permutation search"),
-    "faststack": ("📷", "Fast photo viewer + lightweight editing + upload workflow"),
-    "inat.nearbyobservations.py": ("🧭", "Find nearby same-genus iNaturalist observations (CLI + extension)"),
-    "stackcopy": ("📸", "Olympus import tool that understands in-camera focus stacking"),
-    "motoinat.py": ("🧬", "Map Mushroom Observer observation IDs → iNaturalist IDs"),
-    "findphotodates.py": ("🗓️", "Inventory photos/videos by capture date (exiftool-backed)"),
-    "printfunction.sh": ("🧰", "Print Python function definitions via AST (fast context for reviews)"),
+# Curated short blurbs (override GitHub descriptions). 
+# Format: repo_name -> blurb
+CURATED_BLURBS: Dict[str, str] = {
+    "inat.label.py": "iNaturalist → herbarium label generator (RTF output)",
+    "inat.finder.py": "Fix mistyped iNaturalist observation IDs via permutation search",
+    "faststack": "Fast photo viewer + lightweight editing + upload workflow",
+    "inat.nearbyobservations.py": "Find nearby same-genus iNaturalist observations (CLI + extension)",
+    "stackcopy": "Olympus import tool that understands in-camera focus stacking",
+    "motoinat.py": "Map Mushroom Observer observation IDs → iNaturalist IDs",
+    "findphotodates.py": "Inventory photos/videos by capture date (exiftool-backed)",
+    "printfunction.sh": "Print Python function definitions via AST (fast context for reviews)",
 }
 
 WHAT_I_DO_BULLETS = [
-    "🧬 DNA barcoding workflows (field → lab → sequences → IDs)",
-    "📷 Field photography + automation pipelines for large datasets",
-    "🔬 Fungal microscopy + documentation tooling",
+    "DNA barcoding workflows (field → lab → sequences → IDs)",
+    "Field photography + automation pipelines for large datasets",
+    "Fungal microscopy + documentation tooling",
 ]
 
-# A short “vibe” quote like Peter’s blockquote
 VIBE_QUOTE = (
     "Building practical tools for real workflows—mycology, imaging, and automation. "
     "I like fast CLIs, reproducible pipelines, and software that saves time in the field and lab."
 )
 
-# Badges (flat-square, logo) — keep it small like Peter’s
+# Badges (flat-square, logo)
 BADGES = [
     ("Python", "3776AB", "python", "white"),
     ("Shell", "4EAA25", "gnu-bash", "white"),
@@ -248,75 +251,89 @@ def _clean_desc(desc: str, max_len: int) -> str:
     return d[: max_len - 1].rstrip() + "…"
 
 
-def pick_recent_repos(repos: List[dict], n: int) -> List[dict]:
-    repos_sorted = sorted(repos, key=lambda r: r.get("pushed_at", ""), reverse=True)
-    out: List[dict] = []
-    for r in repos_sorted:
-        if not _is_good_repo(r):
-            continue
-        out.append(r)
-        if len(out) >= n:
-            break
-    return out
-
-
-def pick_top_repos(repos: List[dict], n: int) -> List[dict]:
-    candidates = [r for r in repos if _is_good_repo(r)]
-    candidates.sort(
-        key=lambda r: (r.get("stargazers_count", 0), r.get("pushed_at", "")),
-        reverse=True,
-    )
-    return candidates[:n]
-
-
-def curated_then_top(repos: List[dict], n: int) -> List[dict]:
-    by_name = {str(r.get("name", "")).lower(): r for r in repos}
-    picked: List[dict] = []
-    for name in PREFERRED_REPOS:
-        r = by_name.get(name.lower())
-        if r and _is_good_repo(r):
-            picked.append(r)
-
-    remaining = [r for r in repos if _is_good_repo(r) and r not in picked]
-    remaining.sort(
-        key=lambda r: (r.get("stargazers_count", 0), r.get("pushed_at", "")),
-        reverse=True,
-    )
-    return (picked + remaining)[:n]
-
-
 def badge_line() -> str:
     parts: List[str] = []
     for label, color, logo, logo_color in BADGES:
-        # Example:
-        # ![Python](https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=python&logoColor=white)
         parts.append(
             f"![{label}](https://img.shields.io/badge/-{label}-{color}?style=flat-square&logo={logo}&logoColor={logo_color})"
         )
     return "\n".join(parts)
 
 
+def _repo_key(r: dict) -> str:
+    return str(r.get("name", "")).strip().lower()
+
+
+def _stable_sort_key_for_preferred(name_lower: str) -> int:
+    try:
+        return PREFERRED_REPOS.index(name_lower)  # type: ignore[arg-type]
+    except ValueError:
+        return 10_000
+
+
+def pick_current_repos(filtered_repos: List[dict], pinned: List[dict], n: int) -> List[dict]:
+    if pinned:
+        out = [r for r in pinned if _is_good_repo(r)]
+        return out[:n]
+
+    # Otherwise prefer PREFERRED_REPOS order, then fall back to “top” by stars/recency.
+    by_name = {_repo_key(r): r for r in filtered_repos}
+    picked: List[dict] = []
+    for name in PREFERRED_REPOS:
+        r = by_name.get(name.lower())
+        if r and _is_good_repo(r):
+            picked.append(r)
+
+    remaining = [r for r in filtered_repos if _is_good_repo(r) and r not in picked]
+    remaining.sort(key=lambda r: (r.get("stargazers_count", 0), r.get("pushed_at", "")), reverse=True)
+    return (picked + remaining)[:n]
+
+
+def pick_recent_repos(filtered_repos: List[dict], exclude: set[str], n: int) -> List[dict]:
+    repos_sorted = sorted(filtered_repos, key=lambda r: r.get("pushed_at", ""), reverse=True)
+    out: List[dict] = []
+    for r in repos_sorted:
+        if not _is_good_repo(r):
+            continue
+        k = _repo_key(r)
+        if k in exclude:
+            continue
+        out.append(r)
+        exclude.add(k)
+        if len(out) >= n:
+            break
+    return out
+
+
+def pick_top_repos(filtered_repos: List[dict], exclude: set[str], n: int) -> List[dict]:
+    candidates = [r for r in filtered_repos if _is_good_repo(r) and _repo_key(r) not in exclude]
+    candidates.sort(key=lambda r: (r.get("stargazers_count", 0), r.get("pushed_at", "")), reverse=True)
+    out = candidates[:n]
+    for r in out:
+        exclude.add(_repo_key(r))
+    return out
+
+
 def project_line(repo: dict) -> str:
     """
-    - 🧭 **[repo](url)** — short blurb
-    We dynamically truncate to reduce wrapping, since CSS no-wrap can't be relied on in GitHub READMEs.
+    Minimal, human style:
+    - **[repo](url)** — blurb
+    Dynamic truncation reduces wrapping.
     """
     name = str(repo.get("name", "")).strip()
     url = str(repo.get("html_url", "")).strip()
 
-    emoji, blurb = CURATED_BLURBS.get(name, ("🔧", ""))
-
+    blurb = CURATED_BLURBS.get(name, "")
     if not blurb:
-        # Fall back to GitHub description, but keep it short
         blurb = str(repo.get("description") or "").strip()
 
-    # Dynamic truncation: aim for roughly TARGET_LINE_CHARS overall
-    # Reserve a bit for markup and punctuation.
-    reserve = len(name) + 12  # emoji + markdown + separators overhead
+    reserve = len(name) + 10  # markdown + separators
     max_desc = max(60, TARGET_LINE_CHARS - reserve)
     blurb = _clean_desc(blurb, max_desc)
 
-    return f"- {emoji} **[{name}]({url})** — {blurb}"
+    if blurb:
+        return f"- **[{name}]({url})** — {blurb}"
+    return f"- **[{name}]({url})**"
 
 
 def section(title: str, lines: List[str]) -> List[str]:
@@ -334,32 +351,37 @@ def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[d
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    # Exclude the profile repo itself from “recent/top”
+    # Exclude the profile repo itself
     profile_repo_name = username.lower()
     filtered_repos = [
         r for r in repos
-        if _is_good_repo(r) and str(r.get("name", "")).lower() != profile_repo_name
+        if _is_good_repo(r) and _repo_key(r) != profile_repo_name
     ]
 
-    current = pinned if pinned else curated_then_top(filtered_repos, n=N_CURRENT)
-    recent = pick_recent_repos(filtered_repos, n=N_RECENT)
-    more = pick_top_repos(filtered_repos, n=N_MORE)
+    # Build sections with no repetition across them
+    used: set[str] = set()
 
-    # tagline (compact identity)
+    current = pick_current_repos(filtered_repos, pinned, n=N_CURRENT)
+    for r in current:
+        used.add(_repo_key(r))
+
+    recent = pick_recent_repos(filtered_repos, exclude=used, n=N_RECENT)
+    more = pick_top_repos(filtered_repos, exclude=used, n=N_MORE)
+
     tagline_bits: List[str] = []
     if location:
-        tagline_bits.append(f"📍 **{location}**")
-    tagline_bits.append("🍄 **Mycology + DNA barcoding**")
-    tagline_bits.append("📷 **Field photography**")
-    tagline_bits.append("🔬 **Fungal microscopy**")
+        tagline_bits.append(f"**{location}**")
+    tagline_bits.append("**Mycology + DNA barcoding**")
+    tagline_bits.append("**Field photography**")
+    tagline_bits.append("**Fungal microscopy**")
     tagline = " | ".join(tagline_bits)
 
     # Links
     links: List[str] = []
     if blog:
         blog_url = blog if blog.startswith("http") else f"https://{blog}"
-        links.append(f"- 🌐 {blog_url}")
-    links.append(f"- 💻 {profile_url}")
+        links.append(f"- {blog_url}")
+    links.append(f"- {profile_url}")
 
     lines: List[str] = []
     lines.append(f"<!-- Auto-generated on {now}. Edit README.md or regenerate via make_readme.py. -->")
@@ -369,7 +391,6 @@ def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[d
     lines.append(tagline)
     lines.append("")
     if bio:
-        # keep bio short-ish; it's already one sentence on your profile
         lines.append(bio)
         lines.append("")
     lines.append(badge_line())
@@ -383,23 +404,8 @@ def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[d
     lines.append("---")
 
     lines += section("Current projects", [project_line(r) for r in current])
-
-    # Put the auto sections into details to keep the page clean like Peter’s
-    lines.append("")
-    lines.append("<details>")
-    lines.append("<summary><b>Recently updated</b></summary>")
-    lines.append("")
-    lines.extend([project_line(r) for r in recent])
-    lines.append("")
-    lines.append("</details>")
-
-    lines.append("")
-    lines.append("<details>")
-    lines.append("<summary><b>More repos</b></summary>")
-    lines.append("")
-    lines.extend([project_line(r) for r in more])
-    lines.append("")
-    lines.append("</details>")
+    lines += section("Recently updated", [project_line(r) for r in recent])
+    lines += section("More repos", [project_line(r) for r in more])
 
     lines.append("")
     lines.append("---")
