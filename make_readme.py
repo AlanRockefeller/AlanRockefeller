@@ -56,8 +56,8 @@ CURATED_BLURBS: Dict[str, str] = {
 }
 
 WHAT_I_DO_BULLETS = [
-    "DNA barcoding workflows (field → lab → sequences → IDs)",
-    "Field photography + automation pipelines for large datasets",
+    "DNA barcoding",
+    "Field photography",
     "Fungal microscopy",
     "IT security consulting",
 ]
