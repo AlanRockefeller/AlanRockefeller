@@ -326,8 +326,6 @@ def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[d
     display_name = user.get("name") or username
     bio = (user.get("bio") or "").strip()
     location = (user.get("location") or "").strip()
-    blog = (user.get("blog") or "").strip()
-    profile_url = user.get("html_url", f"https://github.com/{username}")
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
@@ -358,15 +356,13 @@ def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[d
 
     # Links
     links: List[str] = []
-    if blog:
-        blog_url = blog if blog.startswith("http") else f"https://{blog}"
-        links.append(f"- {blog_url}")
-    links.append(f"- {profile_url}")
+    links.append(f"- https://www.inaturalist.org/observations/alan_rockefeller")
+    links.append(f"- https://mushroomobserver.org/observations?user=123")
+    links.append(f"- https://www.instagram.com/alan_rockefeller")
 
     lines: List[str] = []
     lines.append(f"<!-- Auto-generated on {now}. Edit README.md or regenerate via make_readme.py. -->")
     lines.append(f'<p align="left"><img src="{HERO_IMAGE_PATH}" alt="Hero image" width="100%"></p>')
-    lines.append(f"# Hi, I'm {display_name} 👋")
     lines.append("")
     lines.append(tagline)
     lines.append("")

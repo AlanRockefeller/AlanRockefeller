@@ -1,6 +1,5 @@
 <!-- Auto-generated on 2026-02-14. Edit README.md or regenerate via make_readme.py. -->
 <p align="left"><img src="hero.jpg" alt="Hero image" width="100%"></p>
-# Hi, I'm Alan Rockefeller 👋
 
 **El Cerrito, California** | **Mycology + DNA barcoding** | **Field photography** | **Fungal microscopy**
 
@@ -46,4 +45,6 @@ Alan is a mycologist, researcher, educator, consultant and keynote speaker speci
 ---
 
 ## Links
-- https://github.com/AlanRockefeller
+- https://www.inaturalist.org/observations/alan_rockefeller
+- https://mushroomobserver.org/observations?user=123
+- https://www.instagram.com/alan_rockefeller
