@@ -15,7 +15,7 @@ Alan is a mycologist, researcher, educator, consultant and keynote speaker speci
 - DNA barcoding workflows (field → lab → sequences → IDs)
 - Field photography + automation pipelines for large datasets
 - Fungal microscopy
-- IT security consolting
+- IT security consulting
 
 ---
 

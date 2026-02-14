@@ -59,7 +59,7 @@ WHAT_I_DO_BULLETS = [
     "DNA barcoding workflows (field → lab → sequences → IDs)",
     "Field photography + automation pipelines for large datasets",
     "Fungal microscopy",
-    "IT security consolting",
+    "IT security consulting",
 ]
 
 VIBE_QUOTE = (
