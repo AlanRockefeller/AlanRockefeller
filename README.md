@@ -8,16 +8,14 @@ Mycologist, researcher, educator, consultant and keynote speaker specializing in
 
 ---
 
-## iNaturalist tools
+## Featured projects
 
 - **[inat.label.py](https://github.com/AlanRockefeller/inat.label.py)** — iNaturalist → herbarium label generator (RTF output)
 - **[inat.finder.py](https://github.com/AlanRockefeller/inat.finder.py)** — Fix mistyped iNaturalist observation IDs via permutation search
+- **[faststack](https://github.com/AlanRockefeller/faststack)** — Fast photo viewer + lightweight editing + upload workflow
 - **[inat.nearbyobservations.py](https://github.com/AlanRockefeller/inat.nearbyobservations.py)** — Find nearby same-genus iNaturalist observations (CLI + browser extension)
-- **[inat.visualizer.py](https://github.com/AlanRockefeller/inat.visualizer.py)** — Graph the seasonal occurrence of any organism anywhere in the world based on iNaturalist da…
-- **[inat.photodownloader.py](https://github.com/AlanRockefeller/inat.photodownloader.py)** — Makes a CSV with the original filenames of your iNaturalist photos, and optionally dow…
-- **[inat.orders.py](https://github.com/AlanRockefeller/inat.orders.py)** — Summarizes the orders (taxonomic rank) of iNaturalist observations - and optionally adds a summ…
+- **[stackcopy](https://github.com/AlanRockefeller/stackcopy)** — Olympus import tool that understands in-camera focus stacking
 - **[motoinat.py](https://github.com/AlanRockefeller/motoinat.py)** — Map Mushroom Observer observation IDs → iNaturalist IDs
-- **[inat-gb-name.pl](https://github.com/AlanRockefeller/inat-gb-name.pl)** — Compares the name on a Genbank record to the current name on iNaturalist
 
 ## DNA & phylogenetics
 
@@ -28,8 +26,6 @@ Mycologist, researcher, educator, consultant and keynote speaker specializing in
 
 ## Photography & media
 
-- **[faststack](https://github.com/AlanRockefeller/faststack)** — Fast photo viewer + lightweight editing + upload workflow
-- **[stackcopy](https://github.com/AlanRockefeller/stackcopy)** — Olympus import tool that understands in-camera focus stacking
 - **[findphotodates.py](https://github.com/AlanRockefeller/findphotodates.py)** — Inventory photos/videos by capture date (exiftool-backed)
 - **[video-rename](https://github.com/AlanRockefeller/video-rename)** — Intelligently renames video files based on where they were shot and the orientation
 - **[photos_to_presentation](https://github.com/AlanRockefeller/photos_to_presentation)** — Creates a Libreoffice Impress or Powerpoint presentation from a directory containing ph…
@@ -39,6 +35,13 @@ Mycologist, researcher, educator, consultant and keynote speaker specializing in
 - **[printfunction.sh](https://github.com/AlanRockefeller/printfunction.sh)** — Print Python function definitions via AST (fast context for reviews)
 - **[rmdup.py](https://github.com/AlanRockefeller/rmdup.py)** — Removes duplicate files
 - **[stock.crash.monitor.py](https://github.com/AlanRockefeller/stock.crash.monitor.py)** — Alert you if a stock changes in price quickly or goes above/below a certain amount
+
+## iNaturalist tools
+
+- **[inat.visualizer.py](https://github.com/AlanRockefeller/inat.visualizer.py)** — Graph the seasonal occurrence of any organism anywhere in the world based on iNaturalist da…
+- **[inat.photodownloader.py](https://github.com/AlanRockefeller/inat.photodownloader.py)** — Makes a CSV with the original filenames of your iNaturalist photos, and optionally dow…
+- **[inat.orders.py](https://github.com/AlanRockefeller/inat.orders.py)** — Summarizes the orders (taxonomic rank) of iNaturalist observations - and optionally adds a summ…
+- **[inat-gb-name.pl](https://github.com/AlanRockefeller/inat-gb-name.pl)** — Compares the name on a Genbank record to the current name on iNaturalist
 
 ## Other tools
 

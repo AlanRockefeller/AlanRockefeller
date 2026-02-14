@@ -32,6 +32,16 @@ TARGET_LINE_CHARS = 120
 # How many items per category section (0 = unlimited)
 MAX_PER_CATEGORY = 0
 
+# ---- Featured projects ----
+# Shown at the top of the README, before category sections.
+# Pinned repos are automatically included first (in pinned order).
+# Add repo names here to feature them alongside pinned repos, beyond
+# GitHub's 6-pin limit.  These appear after pinned repos, in list order.
+EXTRA_FEATURED: List[str] = [
+    # "fixfasta.py",
+    # "Treecraft",
+]
+
 # ---- Bio / tagline (first person) ----
 
 BIO = (
@@ -59,10 +69,10 @@ PROFILE_LINKS: Dict[str, str] = {
 # into an "Other tools" bucket sorted by stars then recency.
 
 CATEGORY_ORDER = [
-    "iNaturalist tools",
     "DNA & phylogenetics",
     "Photography & media",
     "Utilities",
+    "iNaturalist tools",
 ]
 
 REPO_CATEGORIES: Dict[str, str] = {
@@ -317,34 +327,71 @@ def _sort_key_stars_recency(r: dict) -> tuple:
     return (r.get("stargazers_count", 0), r.get("pushed_at", ""))
 
 
-def _build_category_map(
+def _build_repo_index(
     repos: List[dict],
     pinned: List[dict],
-) -> Dict[str, List[dict]]:
-    """
-    Assign repos to categories.  Pinned repos are noted but don't change
-    category assignment.  Returns {category_name: [repo, ...]}.
-    """
-    # Index all good repos by name
+) -> Dict[str, dict]:
+    """Index all usable repos by name (pinned included as fallback)."""
     by_name: Dict[str, dict] = {}
     for r in repos:
         if _is_good_repo(r):
             by_name[_repo_key(r)] = r
-    # Also include pinned (they may not appear in the REST listing if private-ish)
     for r in pinned:
         key = _repo_key(r)
         if key and key not in by_name and _is_good_repo(r):
             by_name[key] = r
+    return by_name
 
+
+def build_featured(
+    by_name: Dict[str, dict],
+    pinned: List[dict],
+) -> List[dict]:
+    """
+    Build the featured projects list: pinned repos first (in pinned order),
+    then EXTRA_FEATURED repos (in list order), deduped.
+    """
+    featured: List[dict] = []
+    seen: Set[str] = set()
+
+    # Pinned repos come first
+    for r in pinned:
+        key = _repo_key(r)
+        if key and key not in seen and _is_good_repo(r):
+            # Prefer the REST version if available (has more fields)
+            featured.append(by_name.get(key, r))
+            seen.add(key)
+
+    # Then extras, in config order
+    for name in EXTRA_FEATURED:
+        if name not in seen:
+            r = by_name.get(name)
+            if r:
+                featured.append(r)
+                seen.add(name)
+
+    return featured
+
+
+def _build_category_map(
+    by_name: Dict[str, dict],
+    exclude: Set[str],
+) -> Dict[str, List[dict]]:
+    """
+    Assign repos to categories, skipping any in `exclude` (featured repos).
+    Returns {category_name: [repo, ...]}.
+    """
     categorised: Dict[str, List[dict]] = {cat: [] for cat in CATEGORY_ORDER}
     categorised["Other tools"] = []
 
-    used: Set[str] = set()
+    used: Set[str] = set(exclude)
 
     # First pass: repos with explicit category assignments (preserves dict order)
     for repo_name, category in REPO_CATEGORIES.items():
+        if repo_name in used:
+            continue
         r = by_name.get(repo_name)
-        if r and repo_name not in used:
+        if r:
             target = category if category in categorised else "Other tools"
             categorised[target].append(r)
             used.add(repo_name)
@@ -403,7 +450,10 @@ def generate_readme(
         if _is_good_repo(r) and _repo_key(r).lower() != username.lower()
     ]
 
-    categories = _build_category_map(filtered, pinned)
+    by_name = _build_repo_index(filtered, pinned)
+    featured = build_featured(by_name, pinned)
+    featured_names = {_repo_key(r) for r in featured}
+    categories = _build_category_map(by_name, exclude=featured_names)
 
     # ---- Assemble markdown ----
     lines: List[str] = []
@@ -429,6 +479,13 @@ def generate_readme(
         lines.append("")
 
     lines.append("---")
+
+    # Featured projects (pinned + extras) at the top
+    if featured:
+        lines += _section(
+            "Featured projects",
+            [_project_line(r) for r in featured],
+        )
 
     # Category sections
     for category, cat_repos in categories.items():
