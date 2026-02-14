@@ -62,11 +62,6 @@ WHAT_I_DO_BULLETS = [
     "IT security consulting",
 ]
 
-VIBE_QUOTE = (
-    "Building practical tools for real workflows—mycology, imaging, and automation. "
-    "I like fast CLIs, reproducible pipelines, and software that saves time in the field and lab."
-)
-
 
 # -------------------- END CONFIG --------------------
 
@@ -378,8 +373,6 @@ def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[d
     if bio:
         lines.append(bio)
         lines.append("")
-    lines.append("")
-    lines.append(f"> {VIBE_QUOTE}")
     lines.append("")
     lines.append("---")
 

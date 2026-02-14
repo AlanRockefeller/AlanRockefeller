@@ -7,8 +7,6 @@
 Alan is a mycologist, researcher, educator, consultant and keynote speaker specializing in DNA barcoding, field photography, and fungal microscopy.
 
 
-> Building practical tools for real workflows—mycology, imaging, and automation. I like fast CLIs, reproducible pipelines, and software that saves time in the field and lab.
-
 ---
 
 ## What I do
