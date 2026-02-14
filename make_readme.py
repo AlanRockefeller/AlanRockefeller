@@ -104,10 +104,10 @@ REPO_CATEGORIES: Dict[str, str] = {
 
 # Curated short blurbs (override GitHub descriptions).
 CURATED_BLURBS: Dict[str, str] = {
-    "inat.label.py":                "iNaturalist → herbarium label generator (RTF output)",
+        "inat.label.py":                "iNaturalist → herbarium label generator [website](https://images.mushroomobserver.org/labels)",
     "inat.finder.py":               "Fix mistyped iNaturalist observation IDs via permutation search",
     "faststack":                    "Fast photo viewer + lightweight editing + upload workflow",
-    "inat.nearbyobservations.py":   "Find nearby same-genus iNaturalist observations (CLI + browser extension)",
+    "inat.nearbyobservations.py":   "Find nearby same-genus iNaturalist observations (browser extension)",
     "stackcopy":                    "Olympus import tool that understands in-camera focus stacking",
     "motoinat.py":                  "Map Mushroom Observer observation IDs → iNaturalist IDs",
     "findphotodates.py":            "Inventory photos/videos by capture date (exiftool-backed)",

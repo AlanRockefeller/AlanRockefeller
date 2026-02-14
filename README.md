@@ -10,16 +10,16 @@ Mycologist, researcher, educator, consultant and keynote speaker specializing in
 
 ## Featured projects
 
-- **[inat.label.py](https://github.com/AlanRockefeller/inat.label.py)** — iNaturalist → herbarium label generator (RTF output)
+- **[inat.label.py](https://github.com/AlanRockefeller/inat.label.py)** — iNaturalist → herbarium label generator [website](https://images.mushroomobserver.org/labels)
 - **[inat.finder.py](https://github.com/AlanRockefeller/inat.finder.py)** — Fix mistyped iNaturalist observation IDs via permutation search
 - **[faststack](https://github.com/AlanRockefeller/faststack)** — Fast photo viewer + lightweight editing + upload workflow
-- **[inat.nearbyobservations.py](https://github.com/AlanRockefeller/inat.nearbyobservations.py)** — Find nearby same-genus iNaturalist observations (CLI + browser extension)
+- **[inat.nearbyobservations.py](https://github.com/AlanRockefeller/inat.nearbyobservations.py)** — Find nearby same-genus iNaturalist observations (browser extension)
 - **[stackcopy](https://github.com/AlanRockefeller/stackcopy)** — Olympus import tool that understands in-camera focus stacking
 - **[motoinat.py](https://github.com/AlanRockefeller/motoinat.py)** — Map Mushroom Observer observation IDs → iNaturalist IDs
 
 ## DNA & phylogenetics
 
-- **[fixfasta.py](https://github.com/AlanRockefeller/fixfasta.py)** — Detect and reverse complement backwards ITS sequences in FASTA files
+- **[fixfasta.py](https://github.com/AlanRockefeller/fixfasta.py)** — Reverse complement backwards ITS sequences in FASTA files
 - **[Treecraft](https://github.com/AlanRockefeller/Treecraft)** — Phylogenetic tree building utility - uses Python / PyQt6
 - **[TreeWeaver](https://github.com/AlanRockefeller/TreeWeaver)** — A python GUI program which makes it easy to build and edit phylogenetic trees
 - **[convert.treebase.nexus.to.fasta.py](https://github.com/AlanRockefeller/convert.treebase.nexus.to.fasta.py)** — Converts NEXUS files downloaded from TreeBASE to FASTA format for phylogene…
