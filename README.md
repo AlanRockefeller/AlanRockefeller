@@ -1,4 +1,4 @@
-<!-- Auto-generated on 2026-02-13. Edit README.md or regenerate via make_readme.py. -->
+<!-- Auto-generated on 2026-02-14. Edit README.md or regenerate via make_readme.py. -->
 <p align="left"><img src="hero.jpg" alt="Hero image" width="100%"></p>
 # Hi, I'm Alan Rockefeller 👋
 
@@ -6,11 +6,6 @@
 
 Alan is a mycologist, researcher, educator, consultant and keynote speaker specializing in DNA barcoding, field photography, and fungal microscopy.
 
-![Python](https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=python&logoColor=white)
-![Shell](https://img.shields.io/badge/-Shell-4EAA25?style=flat-square&logo=gnu-bash&logoColor=white)
-![Perl](https://img.shields.io/badge/-Perl-39457E?style=flat-square&logo=perl&logoColor=white)
-![CLI](https://img.shields.io/badge/-CLI-000000?style=flat-square&logo=terminal&logoColor=white)
-![Linux](https://img.shields.io/badge/-Linux-FCC624?style=flat-square&logo=linux&logoColor=black)
 
 > Building practical tools for real workflows—mycology, imaging, and automation. I like fast CLIs, reproducible pipelines, and software that saves time in the field and lab.
 
@@ -19,7 +14,8 @@ Alan is a mycologist, researcher, educator, consultant and keynote speaker speci
 ## What I do
 - DNA barcoding workflows (field → lab → sequences → IDs)
 - Field photography + automation pipelines for large datasets
-- Fungal microscopy + documentation tooling
+- Fungal microscopy
+- IT security consolting
 
 ---
 

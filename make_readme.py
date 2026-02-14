@@ -58,7 +58,8 @@ CURATED_BLURBS: Dict[str, str] = {
 WHAT_I_DO_BULLETS = [
     "DNA barcoding workflows (field → lab → sequences → IDs)",
     "Field photography + automation pipelines for large datasets",
-    "Fungal microscopy + documentation tooling",
+    "Fungal microscopy",
+    "IT security consolting",
 ]
 
 VIBE_QUOTE = (
@@ -66,14 +67,6 @@ VIBE_QUOTE = (
     "I like fast CLIs, reproducible pipelines, and software that saves time in the field and lab."
 )
 
-# Badges (flat-square, logo)
-BADGES = [
-    ("Python", "3776AB", "python", "white"),
-    ("Shell", "4EAA25", "gnu-bash", "white"),
-    ("Perl", "39457E", "perl", "white"),
-    ("CLI", "000000", "terminal", "white"),
-    ("Linux", "FCC624", "linux", "black"),
-]
 
 # -------------------- END CONFIG --------------------
 
@@ -251,14 +244,6 @@ def _clean_desc(desc: str, max_len: int) -> str:
     return d[: max_len - 1].rstrip() + "…"
 
 
-def badge_line() -> str:
-    parts: List[str] = []
-    for label, color, logo, logo_color in BADGES:
-        parts.append(
-            f"![{label}](https://img.shields.io/badge/-{label}-{color}?style=flat-square&logo={logo}&logoColor={logo_color})"
-        )
-    return "\n".join(parts)
-
 
 def _repo_key(r: dict) -> str:
     return str(r.get("name", "")).strip().lower()
@@ -393,7 +378,6 @@ def generate_readme(username: str, user: dict, repos: List[dict], pinned: List[d
     if bio:
         lines.append(bio)
         lines.append("")
-    lines.append(badge_line())
     lines.append("")
     lines.append(f"> {VIBE_QUOTE}")
     lines.append("")
