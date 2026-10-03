@@ -13,7 +13,7 @@ Mycologist based in El Cerrito, California. I write open-source tools for DNA ba
 
 ## Featured projects
 
-- **[Dikarya-phylogenetic-tree-generator](https://github.com/AlanRockefeller/Dikarya-phylogenetic-tree-generator)** - Phylogenetic tree builder that runs IQ-TREE, RAxML-NG or MrBayes ([website](https://dikarya.us))
+- **[Dikarya-phylogenetic-tree-generator](https://github.com/AlanRockefeller/Dikarya-phylogenetic-tree-generator)** - Phylogenetic tree builder that runs IQ-TREE, RAxML-NG or MrBayes ([website](https://dikarya.us/tree))
 - **[inat.label.py](https://github.com/AlanRockefeller/inat.label.py)** - Command line herbarium label generator for iNaturalist and Mushroom Observer observations ([website](https://labels.dikarya.us))
 - **[inat.finder.py](https://github.com/AlanRockefeller/inat.finder.py)** - Find the right iNaturalist observation when you have a mistyped number
 - **[faststack](https://github.com/AlanRockefeller/faststack)** - Fast photo viewer with basic editing and uploading

@@ -52,7 +52,7 @@ BROWSER_APPS: Dict[str, tuple] = {
         "Dikarya",
         "Build phylogenetic trees from iNaturalist or Mushroom Observer "
         "observations, GenBank accessions or your own FASTA sequences",
-        "https://dikarya.us/tree",
+        "",
     ),
     "inat.label.py": (
         "Herbarium label generator",
