@@ -25,8 +25,10 @@ GQL = "https://api.github.com/graphql"
 
 # Hero image path inside repo (relative). Recommended: 1280-1600px wide, ~400px tall.
 HERO_IMAGE_PATH = "hero.jpg"
+HERO_ALT = "Favolaschia calocera from New Zealand"
 
 # Target total characters per project line before truncating the description.
+# Curated blurbs are never truncated; only GitHub descriptions are.
 TARGET_LINE_CHARS = 120
 
 # How many items per category section (0 = unlimited)
@@ -38,15 +40,30 @@ MAX_PER_CATEGORY = 0
 # Add repo names here to feature them alongside pinned repos, beyond
 # GitHub's 6-pin limit.  These appear after pinned repos, in list order.
 EXTRA_FEATURED: List[str] = [
-    # "fixfasta.py",
-    # "Treecraft",
+    "Dikarya-phylogenetic-tree-generator",
+    "Observation-Workbench",
 ]
 
-# ---- Bio / tagline (first person) ----
+# ---- Use it in your browser ----
+# Shown above Featured projects.  {repo name: (title, blurb)}; the link is
+# the repo's GitHub homepage field, so set that on GitHub, not here.
+BROWSER_APPS: Dict[str, tuple] = {
+    "Dikarya-phylogenetic-tree-generator": (
+        "Dikarya",
+        "Build phylogenetic trees from iNaturalist or Mushroom Observer "
+        "observations, GenBank accessions or your own FASTA — nothing to install",
+    ),
+    "inat.label.py": (
+        "Herbarium label generator",
+        "Make herbarium labels from iNaturalist or Mushroom Observer observations",
+    ),
+}
+
+# ---- Intro / tagline ----
 
 BIO = (
-    "Mycologist, researcher, educator, consultant and keynote speaker "
-    "specializing in DNA barcoding, field photography, and fungal microscopy."
+    "Open-source tools for DNA barcoding, phylogenetics, "
+    "iNaturalist/Mushroom Observer workflows, and macro photography."
 )
 
 TAGLINE_ITEMS = [
@@ -66,7 +83,8 @@ PROFILE_LINKS: Dict[str, str] = {
 # ---- Category-based repo grouping ----
 # Repos are displayed under their category heading.  Ordering within a
 # category follows the list order here; repos not listed are gathered
-# into an "Other tools" bucket sorted by stars then recency.
+# into an "Other tools" bucket sorted by stars then recency, with a
+# warning.  Map a repo to "Other tools" explicitly to silence it.
 
 CATEGORY_ORDER = [
     "DNA & phylogenetics",
@@ -85,10 +103,11 @@ REPO_CATEGORIES: Dict[str, str] = {
     "inat.orders.py":               "iNaturalist tools",
     "motoinat.py":                  "iNaturalist tools",
     "inat-gb-name.pl":              "iNaturalist tools",
+    "Observation-Workbench":        "iNaturalist tools",
     # DNA & phylogenetics
+    "Dikarya-phylogenetic-tree-generator": "DNA & phylogenetics",
     "fixfasta.py":                  "DNA & phylogenetics",
     "Treecraft":                    "DNA & phylogenetics",
-    "TreeWeaver":                   "DNA & phylogenetics",
     "convert.treebase.nexus.to.fasta.py": "DNA & phylogenetics",
     # Photography & media
     "faststack":                    "Photography & media",
@@ -97,14 +116,29 @@ REPO_CATEGORIES: Dict[str, str] = {
     "video-rename":                 "Photography & media",
     "photos_to_presentation":       "Photography & media",
     # Utilities
+    "honeypath":                    "Utilities",
+    "Lost-Phone-Finder":            "Utilities",
     "printfunction.sh":             "Utilities",
     "rmdup.py":                     "Utilities",
     "stock.crash.monitor.py":       "Utilities",
+    # Other tools
+    "taxonomybot.py":               "Other tools",
 }
 
 # Curated short blurbs (override GitHub descriptions).
+# A website link is appended automatically from each repo's homepage field.
 CURATED_BLURBS: Dict[str, str] = {
-        "inat.label.py":                "iNaturalist → herbarium label generator [website](https://images.mushroomobserver.org/labels)",
+    "inat.label.py":                "iNaturalist → herbarium label generator",
+    "Dikarya-phylogenetic-tree-generator": "Hosted phylogenetic tree builder: alignment, BLAST, IQ-TREE/RAxML-NG/MrBayes",
+    "Observation-Workbench":        "Desktop app for identifying, editing and syncing iNaturalist + Mushroom Observer observations",
+    "honeypath":                    "Credential-canary files that alert you when malware reads them (Linux, WSL, macOS)",
+    "Lost-Phone-Finder":            "Android app that finds a phone lost in the backcountry by its Bluetooth signal",
+    "convert.treebase.nexus.to.fasta.py": "Convert TreeBASE NEXUS downloads to FASTA",
+    "photos_to_presentation":       "Build a LibreOffice Impress or PowerPoint slideshow from a folder of photos",
+    "inat.visualizer.py":           "Graph the seasonal occurrence of any organism, anywhere, from iNaturalist data",
+    "inat.photodownloader.py":      "CSV of your iNaturalist photos' original filenames, with optional download",
+    "inat.orders.py":               "Summarize iNaturalist observations by taxonomic order (optionally family)",
+    "taxonomybot.py":               "PyWikiBot that adds References and Gallery sections to species pages on mycomap.org",
     "inat.finder.py":               "Fix mistyped iNaturalist observation IDs via permutation search",
     "faststack":                    "Fast photo viewer + lightweight editing + upload workflow",
     "inat.nearbyobservations.py":   "Find nearby same-genus iNaturalist observations (browser extension)",
@@ -240,6 +274,7 @@ def fetch_pinned_repos(username: str, token: Optional[str]) -> List[dict]:
               name
               url
               description
+              homepageUrl
               stargazerCount
               forkCount
               updatedAt
@@ -262,7 +297,7 @@ def fetch_pinned_repos(username: str, token: Optional[str]) -> List[dict]:
             '{ user(login:"' + username + '") {'
             "  pinnedItems(first:6, types:REPOSITORY) {"
             "    nodes { ... on Repository {"
-            "      name url description stargazerCount forkCount"
+            "      name url description homepageUrl stargazerCount forkCount"
             "      updatedAt primaryLanguage { name }"
             "    } }"
             "  }"
@@ -283,6 +318,7 @@ def fetch_pinned_repos(username: str, token: Optional[str]) -> List[dict]:
                 "name": n.get("name"),
                 "html_url": n.get("url"),
                 "description": n.get("description") or "",
+                "homepage": n.get("homepageUrl") or "",
                 "stargazers_count": n.get("stargazerCount") or 0,
                 "forks_count": n.get("forkCount") or 0,
                 "language": (n.get("primaryLanguage") or {}).get("name") or "",
@@ -315,12 +351,27 @@ def _strip_boilerplate(desc: str) -> str:
     return desc
 
 
-def _clean_desc(desc: str, max_len: int) -> str:
-    d = " ".join(str(desc).replace("\n", " ").replace("\r", " ").strip().split())
-    d = _strip_boilerplate(d)
-    if len(d) <= max_len:
-        return d
-    return d[: max_len - 1].rstrip() + "…"
+def _clean_desc(desc: str) -> str:
+    d = " ".join(str(desc).split())
+    return _strip_boilerplate(d)
+
+
+def _truncate(text: str, max_len: int) -> str:
+    """Cut at a word boundary so the result (with ellipsis) fits max_len."""
+    if len(text) <= max_len:
+        return text
+    cut = text[: max_len - 1]
+    if " " in cut:
+        cut = cut.rsplit(" ", 1)[0]
+    return cut.rstrip(" ,;:-–—") + "…"
+
+
+def _homepage(repo: dict) -> str:
+    """The repo's GitHub homepage field as an absolute URL, or ''."""
+    url = str(repo.get("homepage") or "").strip()
+    if url and "://" not in url:
+        url = "https://" + url
+    return url
 
 
 def _sort_key_stars_recency(r: dict) -> tuple:
@@ -402,6 +453,8 @@ def _build_category_map(
         if name not in used
     ]
     remaining.sort(key=_sort_key_stars_recency, reverse=True)
+    for r in remaining:
+        _log(f"Warning: {_repo_key(r)} is uncategorized — add it to REPO_CATEGORIES.")
     categorised["Other tools"].extend(remaining)
 
     # Drop empty categories
@@ -412,21 +465,37 @@ def _build_category_map(
 
 
 def _project_line(repo: dict) -> str:
-    """Render one repo as a markdown list item: - **[name](url)** — blurb"""
+    """Render one repo as a markdown list item: - **[name](url)** — blurb · [website](homepage)"""
     name = _repo_key(repo)
     url = str(repo.get("html_url", "")).strip()
+    homepage = _homepage(repo)
+    link = f" · [website]({homepage})" if homepage else ""
 
-    blurb = CURATED_BLURBS.get(name, "")
+    blurb = " ".join(CURATED_BLURBS.get(name, "").split())
     if not blurb:
-        blurb = str(repo.get("description") or "").strip()
-
-    reserve = len(name) + 10
-    max_desc = max(60, TARGET_LINE_CHARS - reserve)
-    blurb = _clean_desc(blurb, max_desc)
+        blurb = _clean_desc(repo.get("description") or "")
+        reserve = len(name) + 10 + (len(" · website") if homepage else 0)
+        max_desc = max(60, TARGET_LINE_CHARS - reserve)
+        if len(blurb) > max_desc:
+            _log(f"Warning: description of {name} truncated — add it to CURATED_BLURBS.")
+            blurb = _truncate(blurb, max_desc)
 
     if blurb:
-        return f"- **[{name}]({url})** — {blurb}"
-    return f"- **[{name}]({url})**"
+        return f"- **[{name}]({url})** — {blurb}{link}"
+    return f"- **[{name}]({url})**{link}"
+
+
+def _browser_app_lines(by_name: Dict[str, dict]) -> List[str]:
+    """Render BROWSER_APPS, linking each to its repo's homepage."""
+    lines: List[str] = []
+    for name, (title, blurb) in BROWSER_APPS.items():
+        r = by_name.get(name)
+        homepage = _homepage(r) if r else ""
+        if not homepage:
+            _log(f"Warning: {name} has no homepage on GitHub — left out of browser section.")
+            continue
+        lines.append(f"- **[{title}]({homepage})** — {blurb}")
+    return lines
 
 
 def _section(title: str, lines: List[str]) -> List[str]:
@@ -462,7 +531,7 @@ def generate_readme(
         f"<!-- Auto-generated on {now}. Edit or regenerate via make_readme.py -->"
     )
     lines.append("")
-    lines.append(f"![Hero]({HERO_IMAGE_PATH})")
+    lines.append(f"![{HERO_ALT}]({HERO_IMAGE_PATH})")
     lines.append("")
 
     # Tagline
@@ -473,14 +542,16 @@ def generate_readme(
     lines.append(" · ".join(bits))
     lines.append("")
 
-    # Bio (first person)
+    # Intro: what the code is for (the GitHub sidebar already shows the bio)
     if BIO:
         lines.append(BIO)
         lines.append("")
 
     lines.append("---")
 
-    # Featured projects (pinned + extras) at the top
+    lines += _section("Use it in your browser", _browser_app_lines(by_name))
+
+    # Featured projects (pinned + extras)
     if featured:
         lines += _section(
             "Featured projects",
