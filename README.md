@@ -8,7 +8,7 @@ Mycologist based in El Cerrito, California. I write open-source tools for DNA ba
 
 ## Use it in your browser
 
-- **[Dikarya](https://dikarya.us)** - Build phylogenetic trees from iNaturalist or Mushroom Observer observations, GenBank accessions or your own FASTA sequences
+- **[Dikarya](https://dikarya.us/tree)** - Build phylogenetic trees from iNaturalist or Mushroom Observer observations, GenBank accessions or your own FASTA sequences
 - **[Herbarium label generator](https://labels.dikarya.us)** - Make herbarium labels from iNaturalist or Mushroom Observer observations
 
 ## Featured projects

@@ -45,17 +45,19 @@ EXTRA_FEATURED: List[str] = [
 ]
 
 # ---- Use it in your browser ----
-# Shown above Featured projects.  {repo name: (title, blurb)}; the link is
-# the repo's GitHub homepage field, so set that on GitHub, not here.
+# Shown above Featured projects.  {repo name: (title, blurb, url)}; an empty
+# url means use the repo's GitHub homepage field.
 BROWSER_APPS: Dict[str, tuple] = {
     "Dikarya-phylogenetic-tree-generator": (
         "Dikarya",
         "Build phylogenetic trees from iNaturalist or Mushroom Observer "
         "observations, GenBank accessions or your own FASTA sequences",
+        "https://dikarya.us/tree",
     ),
     "inat.label.py": (
         "Herbarium label generator",
         "Make herbarium labels from iNaturalist or Mushroom Observer observations",
+        "",
     ),
 }
 
@@ -484,15 +486,15 @@ def _project_line(repo: dict) -> str:
 
 
 def _browser_app_lines(by_name: Dict[str, dict]) -> List[str]:
-    """Render BROWSER_APPS, linking each to its repo's homepage."""
+    """Render BROWSER_APPS, linking each to its url or its repo's homepage."""
     lines: List[str] = []
-    for name, (title, blurb) in BROWSER_APPS.items():
+    for name, (title, blurb, url) in BROWSER_APPS.items():
         r = by_name.get(name)
-        homepage = _homepage(r) if r else ""
-        if not homepage:
-            _log(f"Warning: {name} has no homepage on GitHub — left out of browser section.")
+        link = url or (_homepage(r) if r else "")
+        if not link:
+            _log(f"Warning: {name} has no url or GitHub homepage — left out of browser section.")
             continue
-        lines.append(f"- **[{title}]({homepage})** - {blurb}")
+        lines.append(f"- **[{title}]({link})** - {blurb}")
     return lines
 
 
