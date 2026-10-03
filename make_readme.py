@@ -51,7 +51,7 @@ BROWSER_APPS: Dict[str, tuple] = {
     "Dikarya-phylogenetic-tree-generator": (
         "Dikarya",
         "Build phylogenetic trees from iNaturalist or Mushroom Observer "
-        "observations, GenBank accessions or your own FASTA — nothing to install",
+        "observations, GenBank accessions or your own FASTA sequences",
     ),
     "inat.label.py": (
         "Herbarium label generator",
@@ -59,18 +59,14 @@ BROWSER_APPS: Dict[str, tuple] = {
     ),
 }
 
-# ---- Intro / tagline ----
+# ---- Intro ----
+# {location} is filled in from the GitHub profile's location field.
 
-BIO = (
-    "Open-source tools for DNA barcoding, phylogenetics, "
-    "iNaturalist/Mushroom Observer workflows, and macro photography."
+INTRO = (
+    "Mycologist based in {location}. I write open-source tools for DNA "
+    "barcoding, phylogenetics, iNaturalist, Mushroom Observer and macro "
+    "photography."
 )
-
-TAGLINE_ITEMS = [
-    "Mycology + DNA barcoding",
-    "Field photography",
-    "Fungal microscopy",
-]
 
 # ---- Profile links (displayed as named markdown links) ----
 
@@ -128,24 +124,26 @@ REPO_CATEGORIES: Dict[str, str] = {
 # Curated short blurbs (override GitHub descriptions).
 # A website link is appended automatically from each repo's homepage field.
 CURATED_BLURBS: Dict[str, str] = {
-    "inat.label.py":                "iNaturalist → herbarium label generator",
-    "Dikarya-phylogenetic-tree-generator": "Hosted phylogenetic tree builder: alignment, BLAST, IQ-TREE/RAxML-NG/MrBayes",
-    "Observation-Workbench":        "Desktop app for identifying, editing and syncing iNaturalist + Mushroom Observer observations",
-    "honeypath":                    "Credential-canary files that alert you when malware reads them (Linux, WSL, macOS)",
+    "inat.label.py":                "Command line herbarium label generator for iNaturalist and Mushroom Observer observations",
+    "Dikarya-phylogenetic-tree-generator": "Phylogenetic tree builder that runs IQ-TREE, RAxML-NG or MrBayes",
+    "Observation-Workbench":        "Desktop app for identifying, editing and syncing iNaturalist and Mushroom Observer observations",
+    "honeypath":                    "Plants fake credential files and alerts you when malware reads them (Linux, WSL, macOS)",
     "Lost-Phone-Finder":            "Android app that finds a phone lost in the backcountry by its Bluetooth signal",
     "convert.treebase.nexus.to.fasta.py": "Convert TreeBASE NEXUS downloads to FASTA",
-    "photos_to_presentation":       "Build a LibreOffice Impress or PowerPoint slideshow from a folder of photos",
-    "inat.visualizer.py":           "Graph the seasonal occurrence of any organism, anywhere, from iNaturalist data",
-    "inat.photodownloader.py":      "CSV of your iNaturalist photos' original filenames, with optional download",
-    "inat.orders.py":               "Summarize iNaturalist observations by taxonomic order (optionally family)",
+    "photos_to_presentation":       "Make a LibreOffice Impress or PowerPoint slideshow from a folder of photos",
+    "inat.visualizer.py":           "Graph the seasonal occurrence of any organism anywhere in the world from iNaturalist data",
+    "inat.photodownloader.py":      "Make a CSV of the original filenames of your iNaturalist photos, and optionally download them",
+    "inat.orders.py":               "Summarize iNaturalist observations by order, and optionally by family",
     "taxonomybot.py":               "PyWikiBot that adds References and Gallery sections to species pages on mycomap.org",
-    "inat.finder.py":               "Fix mistyped iNaturalist observation IDs via permutation search",
-    "faststack":                    "Fast photo viewer + lightweight editing + upload workflow",
-    "inat.nearbyobservations.py":   "Find nearby same-genus iNaturalist observations (browser extension)",
-    "stackcopy":                    "Olympus import tool that understands in-camera focus stacking",
-    "motoinat.py":                  "Map Mushroom Observer observation IDs → iNaturalist IDs",
-    "findphotodates.py":            "Inventory photos/videos by capture date (exiftool-backed)",
-    "printfunction.sh":             "Print Python function definitions via AST (fast context for reviews)",
+    "inat.finder.py":               "Find the right iNaturalist observation when you have a mistyped number",
+    "faststack":                    "Fast photo viewer with basic editing and uploading",
+    "inat.nearbyobservations.py":   "Browser extension that finds nearby iNaturalist observations in the same genus",
+    "stackcopy":                    "Photo import tool for Olympus cameras that handles in-camera focus stacking",
+    "motoinat.py":                  "Find the iNaturalist observation that matches a Mushroom Observer observation number",
+    "findphotodates.py":            "List your photos and videos with the dates they were taken, using exiftool",
+    "printfunction.sh":             "Print Python function definitions from the command line using AST parsing",
+    "Treecraft":                    "GUI program for building and editing phylogenetic trees, written in Python with PyQt6",
+    "video-rename":                 "Rename video files based on where they were shot and their orientation",
 }
 
 # Prefixes to strip from GitHub descriptions that weren't curated.
@@ -465,23 +463,23 @@ def _build_category_map(
 
 
 def _project_line(repo: dict) -> str:
-    """Render one repo as a markdown list item: - **[name](url)** — blurb · [website](homepage)"""
+    """Render one repo as a markdown list item: - **[name](url)** - blurb ([website](homepage))"""
     name = _repo_key(repo)
     url = str(repo.get("html_url", "")).strip()
     homepage = _homepage(repo)
-    link = f" · [website]({homepage})" if homepage else ""
+    link = f" ([website]({homepage}))" if homepage else ""
 
     blurb = " ".join(CURATED_BLURBS.get(name, "").split())
     if not blurb:
         blurb = _clean_desc(repo.get("description") or "")
-        reserve = len(name) + 10 + (len(" · website") if homepage else 0)
+        reserve = len(name) + 10 + (len(" (website)") if homepage else 0)
         max_desc = max(60, TARGET_LINE_CHARS - reserve)
         if len(blurb) > max_desc:
             _log(f"Warning: description of {name} truncated — add it to CURATED_BLURBS.")
             blurb = _truncate(blurb, max_desc)
 
     if blurb:
-        return f"- **[{name}]({url})** — {blurb}{link}"
+        return f"- **[{name}]({url})** - {blurb}{link}"
     return f"- **[{name}]({url})**{link}"
 
 
@@ -494,7 +492,7 @@ def _browser_app_lines(by_name: Dict[str, dict]) -> List[str]:
         if not homepage:
             _log(f"Warning: {name} has no homepage on GitHub — left out of browser section.")
             continue
-        lines.append(f"- **[{title}]({homepage})** — {blurb}")
+        lines.append(f"- **[{title}]({homepage})** - {blurb}")
     return lines
 
 
@@ -534,17 +532,9 @@ def generate_readme(
     lines.append(f"![{HERO_ALT}]({HERO_IMAGE_PATH})")
     lines.append("")
 
-    # Tagline
-    bits: List[str] = []
-    if location:
-        bits.append(f"**{location}**")
-    bits.extend(f"**{item}**" for item in TAGLINE_ITEMS)
-    lines.append(" · ".join(bits))
-    lines.append("")
-
     # Intro: what the code is for (the GitHub sidebar already shows the bio)
-    if BIO:
-        lines.append(BIO)
+    if INTRO:
+        lines.append(INTRO.format(location=location))
         lines.append("")
 
     lines.append("---")
