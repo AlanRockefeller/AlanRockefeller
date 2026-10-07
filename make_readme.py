@@ -34,6 +34,9 @@ TARGET_LINE_CHARS = 120
 # How many items per category section (0 = unlimited)
 MAX_PER_CATEGORY = 0
 
+# Include selected forks that I maintain alongside my original projects.
+INCLUDED_FORKS: Set[str] = {"mafft"}
+
 # ---- Featured projects ----
 # Shown at the top of the README, before category sections.
 # Pinned repos are automatically included first (in pinned order).
@@ -51,13 +54,18 @@ BROWSER_APPS: Dict[str, tuple] = {
     "Dikarya-phylogenetic-tree-generator": (
         "Dikarya",
         "Build phylogenetic trees from iNaturalist or Mushroom Observer "
-        "observations, GenBank accessions or your own FASTA sequences",
+        "observations or your own DNA sequences",
         "",
     ),
     "inat.label.py": (
         "Herbarium label generator",
         "Make herbarium labels from iNaturalist or Mushroom Observer observations",
         "",
+    ),
+    "iNaturalist-presentation-creator": (
+        "Dikarya Presentations",
+        "Create PowerPoint presentations from iNaturalist observations",
+        "https://presentations.dikarya.us/",
     ),
 }
 
@@ -93,6 +101,7 @@ CATEGORY_ORDER = [
 
 REPO_CATEGORIES: Dict[str, str] = {
     # iNaturalist tools
+    "iNaturalist-presentation-creator": "iNaturalist tools",
     "inat.label.py":                "iNaturalist tools",
     "inat.finder.py":               "iNaturalist tools",
     "inat.nearbyobservations.py":   "iNaturalist tools",
@@ -104,6 +113,7 @@ REPO_CATEGORIES: Dict[str, str] = {
     "Observation-Workbench":        "iNaturalist tools",
     # DNA & phylogenetics
     "Dikarya-phylogenetic-tree-generator": "DNA & phylogenetics",
+    "mafft":                        "DNA & phylogenetics",
     "fixfasta.py":                  "DNA & phylogenetics",
     "Treecraft":                    "DNA & phylogenetics",
     "convert.treebase.nexus.to.fasta.py": "DNA & phylogenetics",
@@ -126,6 +136,8 @@ REPO_CATEGORIES: Dict[str, str] = {
 # Curated short blurbs (override GitHub descriptions).
 # A website link is appended automatically from each repo's homepage field.
 CURATED_BLURBS: Dict[str, str] = {
+    "iNaturalist-presentation-creator": "Create PowerPoint presentations from iNaturalist observations",
+    "mafft":                        "MAFFT sequence alignment fork with exact speedups and AVX2 support",
     "inat.label.py":                "Command line herbarium label generator for iNaturalist and Mushroom Observer observations",
     "Dikarya-phylogenetic-tree-generator": "Phylogenetic tree builder that runs IQ-TREE, RAxML-NG or MrBayes",
     "Observation-Workbench":        "Desktop app for identifying, editing and syncing iNaturalist and Mushroom Observer observations",
@@ -334,7 +346,10 @@ def fetch_pinned_repos(username: str, token: Optional[str]) -> List[dict]:
 
 
 def _is_good_repo(r: dict) -> bool:
-    return not r.get("fork") and not r.get("archived")
+    return (
+        not r.get("archived")
+        and (not r.get("fork") or _repo_key(r) in INCLUDED_FORKS)
+    )
 
 
 def _repo_key(r: dict) -> str:

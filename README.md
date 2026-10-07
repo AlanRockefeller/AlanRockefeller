@@ -1,4 +1,4 @@
-<!-- Auto-generated on 2026-10-03. Edit or regenerate via make_readme.py -->
+<!-- Auto-generated on 2026-10-07. Edit or regenerate via make_readme.py -->
 
 ![Favolaschia calocera from New Zealand](hero.jpg)
 
@@ -10,6 +10,7 @@ Mycologist based in El Cerrito, California. I write open-source tools for DNA ba
 
 - **[Dikarya](https://dikarya.us/tree)** - Build phylogenetic trees from iNaturalist or Mushroom Observer observations or your own DNA sequences
 - **[Herbarium label generator](https://labels.dikarya.us)** - Make herbarium labels from iNaturalist or Mushroom Observer observations
+- **[Dikarya Presentations](https://presentations.dikarya.us/)** - Create PowerPoint presentations from iNaturalist observations
 
 ## Featured projects
 
@@ -23,6 +24,7 @@ Mycologist based in El Cerrito, California. I write open-source tools for DNA ba
 
 ## DNA & phylogenetics
 
+- **[mafft](https://github.com/AlanRockefeller/mafft)** - MAFFT sequence alignment fork with exact speedups and AVX2 support ([website](https://mafft.cbrc.jp/alignment/software/))
 - **[fixfasta.py](https://github.com/AlanRockefeller/fixfasta.py)** - Reverse complement backwards ITS sequences in FASTA files
 - **[Treecraft](https://github.com/AlanRockefeller/Treecraft)** - GUI program for building and editing phylogenetic trees, written in Python with PyQt6
 - **[convert.treebase.nexus.to.fasta.py](https://github.com/AlanRockefeller/convert.treebase.nexus.to.fasta.py)** - Convert TreeBASE NEXUS downloads to FASTA
@@ -43,6 +45,7 @@ Mycologist based in El Cerrito, California. I write open-source tools for DNA ba
 
 ## iNaturalist tools
 
+- **[iNaturalist-presentation-creator](https://github.com/AlanRockefeller/iNaturalist-presentation-creator)** - Create PowerPoint presentations from iNaturalist observations
 - **[inat.visualizer.py](https://github.com/AlanRockefeller/inat.visualizer.py)** - Graph the seasonal occurrence of any organism anywhere in the world from iNaturalist data
 - **[inat.photodownloader.py](https://github.com/AlanRockefeller/inat.photodownloader.py)** - Make a CSV of the original filenames of your iNaturalist photos, and optionally download them
 - **[inat.orders.py](https://github.com/AlanRockefeller/inat.orders.py)** - Summarize iNaturalist observations by order, and optionally by family
